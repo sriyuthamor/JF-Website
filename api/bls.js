@@ -6,11 +6,13 @@ module.exports = async function (req, res) {
   ];
   try {
     var endyear = new Date().getFullYear();
-    var startyear = endyear - 10;
     var key = process.env.BLS_API_KEY;
+    var version = key ? "v2" : "v1";
+    // BLS caps the span per request (10 years without a key, 20 with one).
+    // Stay just inside the cap so the current year is never dropped.
+    var startyear = endyear - (key ? 19 : 9);
     var body = { seriesid: SERIES, startyear: String(startyear), endyear: String(endyear) };
     if (key) body.registrationkey = key;
-    var version = key ? "v2" : "v1";
     var r = await fetch("https://api.bls.gov/publicAPI/" + version + "/timeseries/data/", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
